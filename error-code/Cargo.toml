@@ -5,9 +5,14 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
+base64 = "0.22.1"
 error-code-derive = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 http = { workspace = true }
+axum = { version = "0.7.5", features = ["http2", "query", "tracing"] }
+tokio = { version = "1.39.2", features = ["rt", "rt-multi-thread", "macros"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

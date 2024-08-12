@@ -1,5 +1,5 @@
 use darling::{
-    ast::{Data, Fields},
+    ast::{Data, Fields, Style},
     util, FromDeriveInput, FromVariant,
 };
 use proc_macro2::TokenStream;
@@ -52,12 +52,18 @@ pub(crate) fn process_to_error_info(input: DeriveInput) -> TokenStream {
                 code,
                 app_code,
                 client_msg,
-                fields: _,
+                fields,
             } = v;
             let code = format!("{}{}", prefix, code);
+            let variant_code = match fields.style {
+                Style::Tuple => quote! { #name::#ident(_) },
+                Style::Struct => quote! { #name::#ident { .. } },
+                Style::Unit => quote! { #name::#ident },
+            };
+
             quote! {
-                #name::#ident(_) => {
-                    ErrorInfo::try_new(
+                #variant_code => {
+                    ErrorInfo::new(
                         #app_code,
                         #code,
                         #client_msg,
@@ -72,7 +78,7 @@ pub(crate) fn process_to_error_info(input: DeriveInput) -> TokenStream {
         use error_code::{ErrorInfo, ToErrorInfo};
         impl #generics ToErrorInfo for #name #generics {
             type T = #app_type;
-            fn to_error_info(&self) -> Result<ErrorInfo<Self::T>,<Self::T as std::str::FromStr>::Err> {
+            fn to_error_info(&self) -> ErrorInfo<Self::T>{
                 match self {
                     #(#code),*
                 }
